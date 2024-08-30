@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { VideoService } from '../../services/video.service';
 
@@ -6,9 +6,10 @@ import { VideoService } from '../../services/video.service';
   selector: 'app-video-player',
   templateUrl: './video-player.component.html',
 })
-export class VideoPlayerComponent implements OnInit {
+export class VideoPlayerComponent implements OnInit, OnDestroy {
   videoTitle: string = '';
   videoUrl: string = '';
+  private objectUrl: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -26,11 +27,17 @@ export class VideoPlayerComponent implements OnInit {
         if (video) {
           this.videoTitle = video.title;
           this.videoService.streamVideo(videoId).subscribe((blob) => {
-            const url = window.URL.createObjectURL(blob);
-            this.videoUrl = url;
+            this.objectUrl = window.URL.createObjectURL(blob);
+            this.videoUrl = this.objectUrl;
           });
         }
       });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.objectUrl) {
+      window.URL.revokeObjectURL(this.objectUrl);
     }
   }
 }
